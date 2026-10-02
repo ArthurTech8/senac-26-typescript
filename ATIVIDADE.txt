@@ -1,0 +1,21 @@
+- USANDO TYPESCRIPT, NODE E EXPRESS
+
+- fazer uma API
+ 2 endpoints
+    - cadastro
+    - login
+
+
+cadastro com
+    username
+    email
+    password
+login com
+    email
+    password
+
+deve validar os dados de entrada
+- se não mandar dados obrigatórios, informar o erro
+- se mandar dados a mais, ignora-los
+
+OS ENDPOINTS PODEM RESPONDER COM OS DADOS ENVIADOS (validados, removendo os extras)
