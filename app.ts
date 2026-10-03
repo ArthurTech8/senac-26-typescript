@@ -1,13 +1,37 @@
 import express from "express" // Importa o Express, usado para criar o servidor e definir as rotas.
+import { data, ReturnUsuario } from "./data";
 
 const app = express() // Cria a aplicação que receberá e encaminhará as requisições HTTP.
 const port = 3000 // Define a porta local em que a API ficará disponível.
 
 app.use(express.json()) // Converte corpos JSON das requisições em objetos acessíveis por req.body.
 
-app.get('/', (req, res) => { // Registra uma rota GET na raiz para responder a uma requisição de teste.
-    res.send('Hello World!') // Envia uma mensagem de texto e encerra a resposta dessa requisição.
-}) // Finaliza a definição da rota GET da raiz.
+app.get("/user", (req, res) => {
+  res.status(200).json(data);
+});
+
+app.get("/user/:id", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+        return res.status(400).json({
+            erro: "O ID deve ser um número inteiro",
+        });
+    }
+    const findUser = data.find((user) => user.id === id);
+  if (!findUser) {
+        return res.status(404).json({
+      erro: "Usuário não encontrado",
+    });
+  }
+  if (findUser) {
+    const returnUser: ReturnUsuario = {
+      email: findUser.email,
+      id: findUser.id,
+      username: findUser.username,
+    };
+    res.status(200).json(returnUser);
+  }
+});
 app.post("/", (req, res) => { // Registra uma rota POST na raiz, independente das rotas de usuário.
     res.status(201).json({ // Define o status de criação e envia um objeto JSON como resposta.
         id: 1 // Retorna um identificador fixo de exemplo para essa rota.
@@ -39,9 +63,21 @@ app.post("/cadastro", (req, res) => { // Registra o endpoint POST usado para rec
         return // Interrompe a rota para não enviar também uma resposta de sucesso.
     } // Finaliza o tratamento de dados inválidos.
 
+    // Monta o registro interno com os campos validados e o username sem espaços nas bordas.
+    const usuario = {
+            // Gera o próximo ID inteiro disponível para manter o tipo numérico e evitar repetições.
+            id: data.reduce((maxId, currentUser) => Math.max(maxId, currentUser.id), 0) + 1,
+            username: username.trim(),
+            email,
+            password,
+    }
+    // GET /user lê este array; inserir aqui faz o cadastro aparecer na listagem em memória.
+    // Como não há banco de dados, os registros adicionados são perdidos ao reiniciar o servidor.
+    data.push(usuario)
+
     res.status(201).json({ // Responde com status de criação após todas as validações passarem.
-        username: username.trim(), // Retorna o nome sem espaços no início ou no fim.
-        email // Retorna somente o email esperado; campos extras da requisição são ignorados.
+        username: usuario.username, // Retorna o nome sem espaços no início ou no fim.
+        email: usuario.email // Retorna somente os campos esperados; campos extras são ignorados.
     }) // Finaliza o objeto JSON de sucesso, sem expor a senha.
 }) // Finaliza a definição do endpoint de cadastro.
 
