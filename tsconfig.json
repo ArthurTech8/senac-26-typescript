@@ -16,8 +16,7 @@
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
     "outDir": "./dist",
-    "resolveJsonModule": true,
-    "moduleResolution": "node"
+    "resolveJsonModule": true
   },
   "include": [
     "src"
