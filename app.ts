@@ -33,6 +33,95 @@ app.get("/user/:id", (req, res) => {
   }
 });
 
+// PATCH atualiza os dados do usuário cujo ID vem na URL, por exemplo: PATCH /user/2.
+app.patch("/user/:id", (req, res) => {
+    // O ID da URL chega como texto; Number converte esse texto para número.
+    const id = Number(req.params.id);
+
+    // Confere se o ID convertido é um número inteiro antes de procurar o usuário.
+    if (!Number.isInteger(id)) {
+        // 400 significa que os dados enviados na requisição são inválidos.
+        return res.status(400).json({
+            erro: "O ID deve ser um número inteiro",
+        });
+    }
+
+    // Procura no array de usuários aquele que tem o ID recebido na URL.
+    const user = data.find((currentUser) => currentUser.id === id);
+
+    // Se find não encontrar nenhum usuário, o resultado será undefined.
+    if (!user) {
+        // 404 significa que não existe usuário com esse ID.
+        return res.status(404).json({
+            erro: "Usuário não encontrado",
+        });
+    }
+
+    // O corpo precisa ser um objeto JSON: não pode estar ausente, ser null ou ser uma lista.
+    if (typeof req.body !== "object" || req.body === null || Array.isArray(req.body)) {
+        // Encerra a rota com erro se o formato geral do corpo estiver incorreto.
+        return res.status(400).json({
+            erros: ["O corpo da requisição deve ser um objeto JSON"],
+        });
+    }
+
+    // Lista as chaves enviadas para verificar quantos campos a requisição quer alterar.
+    const camposEnviados = Object.keys(req.body);
+
+    // Aceita exatamente um campo e somente os campos permitidos do usuário.
+    if (
+        camposEnviados.length !== 1 ||
+        !["username", "email", "password"].includes(camposEnviados[0])
+    ) {
+        return res.status(400).json({
+            erros: ["Envie somente um campo permitido: username, email ou password"],
+        });
+    }
+
+    // Guarda o nome do único campo enviado para escolher qual validação executar.
+    const campo = camposEnviados[0];
+
+    // Se o campo for username, valida o tipo e remove espaços das bordas antes de salvar.
+    if (campo === "username") {
+        if (typeof req.body.username !== "string" || !req.body.username.trim()) {
+            return res.status(400).json({
+                erros: ["Username é obrigatório"],
+            });
+        }
+        user.username = req.body.username.trim();
+    }
+
+    // Se o campo for email, usa a validação existente para conferir seu formato.
+    if (campo === "email") {
+        if (!isValidEmail(req.body.email)) {
+            return res.status(400).json({
+                erros: ["Informe um email válido"],
+            });
+        }
+        user.email = req.body.email;
+    }
+
+    // Se o campo for password, exige texto com pelo menos oito caracteres.
+    if (campo === "password") {
+        if (!isValidPassword(req.body.password)) {
+            return res.status(400).json({
+                erros: ["A senha deve ter pelo menos 8 caracteres"],
+            });
+        }
+        user.password = req.body.password;
+    }
+
+    // Monta a resposta com os campos públicos; a senha nunca é devolvida.
+    const returnUser: ReturnUsuario = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+    };
+
+    // 200 confirma que a atualização deu certo e envia somente os dados tratados.
+    return res.status(200).json(returnUser);
+});
+
 app.delete("/user/:id", (req, res) => {
     // Registra uma rota DELETE que recebe o ID do usuário pela URL.
     const id = Number(req.params.id); // Converte o parâmetro, que chega como texto, para number.
