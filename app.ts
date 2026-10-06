@@ -32,6 +32,36 @@ app.get("/user/:id", (req, res) => {
     res.status(200).json(returnUser);
   }
 });
+
+app.delete("/user/:id", (req, res) => {
+    // Registra uma rota DELETE que recebe o ID do usuário pela URL.
+    const id = Number(req.params.id); // Converte o parâmetro, que chega como texto, para number.
+    if (!Number.isInteger(id)) { // Impede a busca se o valor não for um número inteiro.
+        return res.status(400).json({ // Responde 400 para indicar que o ID enviado é inválido.
+            erro: "O ID deve ser um número inteiro", // Explica ao cliente qual formato de ID é aceito.
+        }); // Finaliza a resposta de erro e o objeto JSON.
+    } // Encerra a validação do ID.
+
+    const userIndex = data.findIndex((user) => user.id === id); // Localiza a posição do usuário com esse ID no array.
+    if (userIndex === -1) { // findIndex retorna -1 quando não encontra correspondência.
+        return res.status(404).json({ // Responde 404 porque não há usuário para remover.
+            erro: "Usuário não encontrado", // Informa que nenhum usuário possui o ID solicitado.
+        }); // Finaliza a resposta de usuário inexistente.
+    } // Encerra o tratamento do caso em que o ID não existe.
+
+    const [deletedUser] = data.splice(userIndex, 1); // Remove um item do array e guarda o usuário removido.
+    const returnUser: ReturnUsuario = { // Cria uma resposta pública compatível com ReturnUsuario.
+        id: deletedUser.id, // Inclui o ID para identificar qual usuário foi removido.
+        email: deletedUser.email, // Inclui o email para confirmar o usuário removido.
+        username: deletedUser.username, // Inclui o nome, sem expor a senha armazenada.
+    }; // Finaliza o objeto com os dados públicos do usuário.
+
+    return res.status(200).json({ // Retorna status 200 para indicar que a remoção foi concluída.
+        mensagem: "Usuário removido com sucesso", // Confirma a operação para quem chamou a API.
+        usuario: returnUser, // Devolve os dados públicos do usuário removido.
+    }); // Finaliza e envia a resposta JSON de sucesso.
+}); // Encerra a definição da rota DELETE.
+
 app.post("/", (req, res) => { // Registra uma rota POST na raiz, independente das rotas de usuário.
     res.status(201).json({ // Define o status de criação e envia um objeto JSON como resposta.
         id: 1 // Retorna um identificador fixo de exemplo para essa rota.
